@@ -17,8 +17,12 @@ namespace BangazonAPI.Models
         public string LastName { get; set; }
 
         [Required]
-        public DateTime AcctEstablished { get; }
+        public DateTime CreationDate { get; set; }
 
+        public Customer()
+        {
+           CreationDate = DateTime.Now;
+        }
         
         public DateTime LastActiveDate { get; set; }
 
