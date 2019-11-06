@@ -205,10 +205,9 @@ namespace BangazonAPI.Controllers
 
         // PUT api/customers/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, [FromBody] Product product)
+        public IActionResult Put(int id, [FromBody] Product product)
         {
-            try
-            {
+           
                 using (SqlConnection conn = Connection)
                 {
                     conn.Open();
@@ -220,7 +219,7 @@ namespace BangazonAPI.Controllers
                             Description = @description, Quantity = @quantity, 
                             ProductTypeId = @productTypeId, CustomerId = @customerId
                             WHERE Id = @id";
-                        cmd.Parameters.Add(new SqlParameter("@id", product.Id));
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
                         cmd.Parameters.Add(new SqlParameter("@productName", product.ProductName));
                         cmd.Parameters.Add(new SqlParameter("@price", product.Price));
                         cmd.Parameters.Add(new SqlParameter("@description", product.Description));
@@ -228,29 +227,12 @@ namespace BangazonAPI.Controllers
                         cmd.Parameters.Add(new SqlParameter("@productTypeId", product.ProductTypeId));
                         cmd.Parameters.Add(new SqlParameter("@customerId", product.CustomerId));
 
-                        int rowsAffected = await cmd.ExecuteNonQueryAsync();
-
-                        if (rowsAffected > 0)
-                        {
-                            return new StatusCodeResult(StatusCodes.Status204NoContent);
-                        }
-
-                        throw new Exception("No rows affected");
-                    }
+                        cmd.ExecuteNonQuery();                 
                 }
+            }          
+                    return NoContent();            
             }
-            catch (Exception)
-            {
-                if (!ProductExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-        }
+        
 
         // DELETE api/customers/5
         [HttpDelete("{id}")]
