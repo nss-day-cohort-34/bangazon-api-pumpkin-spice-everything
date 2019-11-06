@@ -13,7 +13,7 @@ namespace BangazonAPI.Models
 
         [Required]
         [StringLength(50, MinimumLength = 2)]
-        public string Type { get; set; }
+        public string TypeName { get; set; }
 
         public List<Product> Products { get; set; } = new List<Product>();
 
