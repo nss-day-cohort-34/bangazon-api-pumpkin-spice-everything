@@ -76,6 +76,11 @@ namespace BangazonAPI.Controllers
                             CreationDate = reader.GetDateTime(reader.GetOrdinal("CreationDate")),
                             LastActiveDate = reader.GetDateTime(reader.GetOrdinal("LastActiveDate")),
                             IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                            ProductsToSell = new List<Product>(),
+                            PaymentTypes = new List<PaymentType>(),
+                            Orders = new List<Order>()
+
+                            
                         };
 
                         customers.Add(customerId, newCustomer);
@@ -114,6 +119,9 @@ namespace BangazonAPI.Controllers
                             CreationDate = reader.GetDateTime(reader.GetOrdinal("CreationDate")),
                             LastActiveDate = reader.GetDateTime(reader.GetOrdinal("LastActiveDate")),
                             IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                            ProductsToSell = new List<Product>(),
+                            PaymentTypes = new List<PaymentType>(),
+                            Orders = new List<Order>()
                         };
 
                         customers.Add(customer);
@@ -134,7 +142,7 @@ namespace BangazonAPI.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                   
+
                     if (include.ToLower() == "product")
                     {
                         cmd.CommandText = @"SELECT c.Id as CustomerId, c.FirstName, c.LastName, c.CreationDate, c.LastActiveDate, c.IsActive,
@@ -143,7 +151,7 @@ namespace BangazonAPI.Controllers
                                          WHERE c.FirstName LIKE @q OR c.LastName LIKE @q OR c.CreationDate LIKE @q OR c.LastActiveDate LIKE @q OR c.IsActive LIKE @q";
                         cmd.Parameters.Add(new SqlParameter("@q", $"%{q}%"));
                         SqlDataReader reader = cmd.ExecuteReader();
-                                               
+
                         Dictionary<int, Customer> customers = new Dictionary<int, Customer>();
                         while (reader.Read())
                         {
@@ -158,6 +166,9 @@ namespace BangazonAPI.Controllers
                                     CreationDate = reader.GetDateTime(reader.GetOrdinal("CreationDate")),
                                     LastActiveDate = reader.GetDateTime(reader.GetOrdinal("LastActiveDate")),
                                     IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                                    ProductsToSell = new List<Product>(),
+                                    PaymentTypes = new List<PaymentType>(),
+                                    Orders = new List<Order>()
                                 };
 
                                 customers.Add(customerId, customer);
@@ -183,11 +194,64 @@ namespace BangazonAPI.Controllers
                         reader.Close();
                         return Ok(customers.Values);
                     }
-                    
-                }
-                return null;
+                    else
+                    {
+                        if (include.ToLower() == "payment")
+                        {
+                            cmd.CommandText = @"SELECT c.Id as CustomerId, c.FirstName, c.LastName, c.CreationDate, c.LastActiveDate, c.IsActive,
+                                                   pt.Id as PaymentTypeId, pt.CustomerId as CustomerPTId, pt.Type as PaymentType, pt.AcctNumber as AccountNumber 
+                                          FROM Customer c LEFT JOIN PaymentType pt ON c.Id = pt.CustomerId
+                                         WHERE c.FirstName LIKE @q OR c.LastName LIKE @q OR c.CreationDate LIKE @q OR c.LastActiveDate LIKE @q OR c.IsActive LIKE @q";
+                            cmd.Parameters.Add(new SqlParameter("@q", $"%{q}%"));
+                            SqlDataReader reader = cmd.ExecuteReader();
+
+                            Dictionary<int, Customer> customers = new Dictionary<int, Customer>();
+                            while (reader.Read())
+                            {
+                                int customerId = reader.GetInt32(reader.GetOrdinal("CustomerId"));
+                                if (!customers.ContainsKey(customerId))
+                                {
+                                    Customer customer = new Customer
+                                    {
+                                        Id = reader.GetInt32(reader.GetOrdinal("CustomerId")),
+                                        FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                        LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                        CreationDate = reader.GetDateTime(reader.GetOrdinal("CreationDate")),
+                                        LastActiveDate = reader.GetDateTime(reader.GetOrdinal("LastActiveDate")),
+                                        IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                                        ProductsToSell = new List<Product>(),
+                                        PaymentTypes = new List<PaymentType>(),
+                                        Orders = new List<Order>()
+                                    };
+
+                                    customers.Add(customerId, customer);
+                                }
+                                Customer fromDictionary = customers[customerId];
+
+                                if (!reader.IsDBNull(reader.GetOrdinal("ProductId")))
+                                {
+                                    PaymentType paymentType = new PaymentType
+                                    {
+                                        Id = reader.GetInt32(reader.GetOrdinal("PaymentTypeId")),
+                                        Type = reader.GetString(reader.GetOrdinal("PaymentType")),
+                                        AcctNumber = reader.GetString(reader.GetOrdinal("AccountNumber"))
+
+
+                                    };
+                                    fromDictionary.PaymentTypes.Add(paymentType);
+                                }
+                            }
+
+                            reader.Close();
+                            return Ok(customers.Values);
+                        }
+
+                    }
+                    return null;
+
                 }
             }
+        }
 
         //Get all customers with Include products
         public async Task<IActionResult> GetAllCustomersWithProducts(string include)
@@ -219,6 +283,9 @@ namespace BangazonAPI.Controllers
                                     CreationDate = reader.GetDateTime(reader.GetOrdinal("CreationDate")),
                                     LastActiveDate = reader.GetDateTime(reader.GetOrdinal("LastActiveDate")),
                                     IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                                    ProductsToSell = new List<Product>(),
+                                    PaymentTypes = new List<PaymentType>(),
+                                    Orders = new List<Order>()
                                 };
 
                                 customers.Add(customerId, customer);
@@ -245,8 +312,57 @@ namespace BangazonAPI.Controllers
                         return Ok(customers.Values);
                     }
 
+                    if (include.ToLower() == "payment")
+                    {
+                        cmd.CommandText = @"SELECT c.Id as CustomerId, c.FirstName, c.LastName, c.CreationDate, c.LastActiveDate, c.IsActive,
+                                                   pt.Id as PaymentTypeId, pt.CustomerId as CustomerId, pt.Type as PaymentType, pt.AcctNumber as AccountNumber 
+                                          FROM Customer c LEFT JOIN PaymentType pt ON c.Id = pt.CustomerId";
+                      
+                        SqlDataReader reader = cmd.ExecuteReader();
+
+                        Dictionary<int, Customer> customers = new Dictionary<int, Customer>();
+                        while (reader.Read())
+                        {
+                            int customerId = reader.GetInt32(reader.GetOrdinal("CustomerId"));
+                            if (!customers.ContainsKey(customerId))
+                            {
+                                Customer customer = new Customer
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("CustomerId")),
+                                    FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                    LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                    CreationDate = reader.GetDateTime(reader.GetOrdinal("CreationDate")),
+                                    LastActiveDate = reader.GetDateTime(reader.GetOrdinal("LastActiveDate")),
+                                    IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                                    ProductsToSell = new List<Product>(),
+                                    PaymentTypes = new List<PaymentType>(),
+                                    Orders = new List<Order>()
+                                };
+
+                                customers.Add(customerId, customer);
+                            }
+                            Customer fromDictionary = customers[customerId];
+
+                            if (!reader.IsDBNull(reader.GetOrdinal("PaymentTypeId")))
+                            {
+                                PaymentType paymentType = new PaymentType
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("PaymentTypeId")),
+                                    Type = reader.GetString(reader.GetOrdinal("PaymentType")),
+                                    AcctNumber = reader.GetString(reader.GetOrdinal("AccountNumber"))
+
+
+                                };
+                                fromDictionary.PaymentTypes.Add(paymentType);
+                            }
+                        }
+
+                        reader.Close();
+                        return Ok(customers.Values);
+
+                    }
+                    return null;
                 }
-                return null;
             }
         }
 
@@ -289,6 +405,9 @@ namespace BangazonAPI.Controllers
                             CreationDate = reader.GetDateTime(reader.GetOrdinal("CreationDate")),
                             LastActiveDate = reader.GetDateTime(reader.GetOrdinal("LastActiveDate")),
                             IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                            ProductsToSell = new List<Product>(),
+                            PaymentTypes = new List<PaymentType>(),
+                            Orders = new List<Order>()
                         };
                     }
 
@@ -330,6 +449,9 @@ namespace BangazonAPI.Controllers
                                     CreationDate = reader.GetDateTime(reader.GetOrdinal("CreationDate")),
                                     LastActiveDate = reader.GetDateTime(reader.GetOrdinal("LastActiveDate")),
                                     IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                                       ProductsToSell = new List<Product>(),
+                            PaymentTypes = new List<PaymentType>(),
+                            Orders = new List<Order>()
                                 };
 
                                 customers.Add(customerId, customer);
@@ -384,58 +506,36 @@ namespace BangazonAPI.Controllers
 
 
                     customer.Id = (int) await cmd.ExecuteScalarAsync();
-
-                    return CreatedAtRoute("GetCustomer", new { id = customer.Id }, customer);
+                    
+                    return Ok(customer);
                 }
             }
         }
 
         // PUT api/customers/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, [FromBody] Customer customer)
+        public void UpateStudentListing([FromRoute] int id, [FromBody] Customer customer)
         {
-            try
-            {
+           
                 using (SqlConnection conn = Connection)
                 {
                     conn.Open();
-                    using (SqlCommand cmd = conn.CreateCommand())
-                    {
-                        cmd.CommandText = @"
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
                             UPDATE Customer
-                            SET FirstName = @firstName, LastName = @lastName, CreationDate = @creationDate, LastActiveDate = @lastActiveDate, IsActive = @isActive
-                            WHERE Id = @id
-                        ";
-                        cmd.Parameters.Add(new SqlParameter("@id", customer.Id));
-                        cmd.Parameters.Add(new SqlParameter("@firstName", customer.FirstName));
-                        cmd.Parameters.Add(new SqlParameter("@lastName", customer.LastName));
-                        cmd.Parameters.Add(new SqlParameter("@creationDate", customer.CreationDate));
-                        cmd.Parameters.Add(new SqlParameter("@lastActiveDate", customer.LastActiveDate));
-                        cmd.Parameters.Add(new SqlParameter("@isActive", customer.IsActive));
+                            SET FirstName = @FirstName, LastName = @LastName, CreationDate = @CreationDate, LastActiveDate = @LastActiveDate
+                            WHERE Id = @Id";
+                    cmd.Parameters.Add(new SqlParameter("@FirstName", customer.FirstName));
+                    cmd.Parameters.Add(new SqlParameter("@LastName", customer.LastName));
+                    cmd.Parameters.Add(new SqlParameter("@CreationDate", customer.CreationDate));
+                    cmd.Parameters.Add(new SqlParameter("@LastActiveDate", customer.LastActiveDate));
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    cmd.ExecuteNonQuery();
 
-                        int rowsAffected = await cmd.ExecuteNonQueryAsync();
-
-                        if (rowsAffected > 0)
-                        {
-                            return new StatusCodeResult(StatusCodes.Status204NoContent);
-                        }
-
-                        throw new Exception("No rows affected");
-                    }
+                }
                 }
             }
-            catch (Exception)
-            {
-                if (!CustomerExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-        }
 
         // DELETE api/customers/5
         [HttpDelete("{id}")]
