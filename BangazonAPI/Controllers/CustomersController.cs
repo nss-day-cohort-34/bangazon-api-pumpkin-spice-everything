@@ -65,10 +65,11 @@ namespace BangazonAPI.Controllers
                                           FROM Customer";
                     SqlDataReader reader = await cmd.ExecuteReaderAsync();
 
-                    List<Customer> customers = new List<Customer>();
+                    Dictionary<int, Customer> customers = new Dictionary<int, Customer>();
                     while (reader.Read())
                     {
-                        Customer customer = new Customer
+                        int customerId = reader.GetInt32(reader.GetOrdinal("Id"));
+                        Customer newCustomer = new Customer
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
                             FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
@@ -78,12 +79,12 @@ namespace BangazonAPI.Controllers
                             IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
                         };
 
-                        customers.Add(customer);
+                        customers.Add(customerId, newCustomer);
                     }
 
                     reader.Close();
 
-                    return Ok(customers);
+                    return Ok(customers.Values);
                 }
             }
         }
@@ -134,7 +135,7 @@ namespace BangazonAPI.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    SqlDataReader reader = await cmd.ExecuteReaderAsync();
+                   
                     if (include.ToLower() == "product")
                     {
                         cmd.CommandText = @"SELECT c.Id, c.FirstName, c.LastName, c.CreationDate, c.LastActiveDate, c.IsActive,
@@ -142,26 +143,44 @@ namespace BangazonAPI.Controllers
                                           FROM Customer c LEFT JOIN Product p ON c.Id = p.CustomerId
                                          WHERE c.FirstName LIKE @q OR c.LastName LIKE @q OR c.CreationDate LIKE @q OR c.LastActiveDate LIKE @q OR c.IsActive LIKE @q";
                         cmd.Parameters.Add(new SqlParameter("@q", $"%{q}%"));
-
-
-
-                        List<Customer> customers = new List<Customer>();
+                        SqlDataReader reader = cmd.ExecuteReader();
+                                               
+                        Dictionary<int, Customer> customers = new Dictionary<int, Customer>();
                         while (reader.Read())
                         {
-                            Customer customer = new Customer
+                            int customerId = reader.GetInt32(reader.GetOrdinal("CustomerId"));
+                            if (!customers.ContainsKey(customerId))
                             {
-                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                                FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
-                                LastName = reader.GetString(reader.GetOrdinal("LastName")),
-                                CreationDate = reader.GetDateTime(reader.GetOrdinal("CreationDate")),
-                                LastActiveDate = reader.GetDateTime(reader.GetOrdinal("LastActiveDate")),
-                                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                            };
+                                Customer customer = new Customer
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                    FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                    LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                    CreationDate = reader.GetDateTime(reader.GetOrdinal("CreationDate")),
+                                    LastActiveDate = reader.GetDateTime(reader.GetOrdinal("LastActiveDate")),
+                                    IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                                };
 
-                            customers.Add(customer);
+                                customers.Add(customerId, customer);
+                            }
+                            Customer fromDictionary = customers[customerId];
+
+                            if (!reader.IsDBNull(reader.GetOrdinal("ProductId")))
+                            {
+                                Product product = new Product
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("ProductId")),
+                                    ProductName = reader.GetString(reader.GetOrdinal("ProductName")),
+                                    Description = reader.GetString(reader.GetOrdinal("Description")),
+                                    Quantity = reader.GetInt32(reader.GetOrdinal("Quantity")),
+
+                                };
+                                fromDictionary.ProductsToSell.Add(product);
+                            }
                         }
+
                         reader.Close();
-                        return Ok(customers);
+                        return Ok(customers.Values);
                     }
                     
                 }
@@ -169,7 +188,7 @@ namespace BangazonAPI.Controllers
                 }
             }
 
-        //Get all customers with Q and Include products
+        //Get all customers with Include products
         public async Task<IActionResult> GetAllCustomersWithProducts(string include)
         {
             using (SqlConnection conn = Connection)
@@ -177,31 +196,50 @@ namespace BangazonAPI.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    SqlDataReader reader = await cmd.ExecuteReaderAsync();
+
                     if (include.ToLower() == "product")
                     {
-                        cmd.CommandText = @"SELECT c.Id, c.FirstName, c.LastName, c.CreationDate, c.LastActiveDate, c.IsActive,
+                        cmd.CommandText = @"SELECT c.Id as CustomerId, c.FirstName, c.LastName, c.CreationDate, c.LastActiveDate, c.IsActive,
                                                    p.Id as ProductId, p.ProductName, p.ProductTypeId as ProductTypeId, p.Price, p.Quantity, p.Description
                                           FROM Customer c LEFT JOIN Product p ON c.Id = p.CustomerId";
+                        SqlDataReader reader = cmd.ExecuteReader();
 
-
-                        List<Customer> customers = new List<Customer>();
+                        Dictionary<int, Customer> customers = new Dictionary<int, Customer>();
                         while (reader.Read())
                         {
-                            Customer customer = new Customer
+                            int customerId = reader.GetInt32(reader.GetOrdinal("CustomerId"));
+                            if (!customers.ContainsKey(customerId))
                             {
-                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                                FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
-                                LastName = reader.GetString(reader.GetOrdinal("LastName")),
-                                CreationDate = reader.GetDateTime(reader.GetOrdinal("CreationDate")),
-                                LastActiveDate = reader.GetDateTime(reader.GetOrdinal("LastActiveDate")),
-                                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
-                            };
+                                Customer customer = new Customer
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("CustomerId")),
+                                    FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                    LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                    CreationDate = reader.GetDateTime(reader.GetOrdinal("CreationDate")),
+                                    LastActiveDate = reader.GetDateTime(reader.GetOrdinal("LastActiveDate")),
+                                    IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                                };
 
-                            customers.Add(customer);
+                                customers.Add(customerId, customer);
+                            }
+                            Customer fromDictionary = customers[customerId];
+
+                            if (!reader.IsDBNull(reader.GetOrdinal("ProductId")))
+                            {
+                                Product product = new Product
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("ProductId")),
+                                    ProductName = reader.GetString(reader.GetOrdinal("ProductName")),
+                                    Description = reader.GetString(reader.GetOrdinal("Description")),
+                                    Quantity = reader.GetInt32(reader.GetOrdinal("Quantity")),
+
+                                };
+                                fromDictionary.ProductsToSell.Add(product);
+                            }
                         }
+
                         reader.Close();
-                        return Ok(customers);
+                        return Ok(customers.Values);
                     }
 
                 }
@@ -212,7 +250,19 @@ namespace BangazonAPI.Controllers
 
         // GET api/customers/5
         [HttpGet("{id}")]
-        public async Task<IActionResult> Get(int id)
+
+        public async Task<IActionResult> Get([FromRoute] int id, string include)
+        {
+            if (include != null)
+            {
+                return await GetCustomersWithProducts(id, include);
+            }
+            else
+            {
+                return await GetCustomers(id);
+            }
+        }
+        public async Task<IActionResult> GetCustomers([FromRoute] int id)
         {
             using (SqlConnection conn = Connection)
             {
@@ -243,6 +293,66 @@ namespace BangazonAPI.Controllers
 
                     return Ok(customer);
                 }
+            }
+        }
+
+        public async Task<IActionResult> GetCustomersWithProducts(int id, string include)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+
+                    if (include.ToLower() == "product")
+                    {
+                        cmd.CommandText = @"SELECT c.Id as CustomerId, c.FirstName, c.LastName, c.CreationDate, c.LastActiveDate, c.IsActive,
+                                                   p.Id as ProductId, p.ProductName, p.ProductTypeId as ProductTypeId, p.Price, p.Quantity, p.Description
+                                          FROM Customer c LEFT JOIN Product p ON c.Id = p.CustomerId
+                                         WHERE c.Id = @id";
+                      
+                        SqlDataReader reader = cmd.ExecuteReader();
+
+                        Dictionary<int, Customer> customers = new Dictionary<int, Customer>();
+                        while (reader.Read())
+                        {
+                            int customerId = reader.GetInt32(reader.GetOrdinal("CustomerId"));
+                            if (!customers.ContainsKey(customerId))
+                            {
+                                Customer customer = new Customer
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("CustomerId")),
+                                    FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                    LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                    CreationDate = reader.GetDateTime(reader.GetOrdinal("CreationDate")),
+                                    LastActiveDate = reader.GetDateTime(reader.GetOrdinal("LastActiveDate")),
+                                    IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                                };
+
+                                customers.Add(customerId, customer);
+                            }
+                            Customer fromDictionary = customers[customerId];
+
+                            if (!reader.IsDBNull(reader.GetOrdinal("ProductId")))
+                            {
+                                Product product = new Product
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("ProductId")),
+                                    ProductName = reader.GetString(reader.GetOrdinal("ProductName")),
+                                    Description = reader.GetString(reader.GetOrdinal("Description")),
+                                    Quantity = reader.GetInt32(reader.GetOrdinal("Quantity")),
+
+                                };
+                                fromDictionary.ProductsToSell.Add(product);
+                            }
+                        }
+
+                        reader.Close();
+                        return Ok(customers.Values);
+                    }
+
+                }
+                return null;
             }
         }
 

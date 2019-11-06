@@ -19,10 +19,10 @@ namespace BangazonAPI.Models
         [Required]
         public DateTime CreationDate { get; set; }
 
-        public Customer()
-        {
-           CreationDate = DateTime.Now;
-        }
+        //public Customer()
+        //{
+        //   CreationDate = DateTime.Now;
+        //}
         
         public DateTime LastActiveDate { get; set; }
 
