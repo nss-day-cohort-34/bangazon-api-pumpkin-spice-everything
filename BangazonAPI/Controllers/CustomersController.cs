@@ -31,7 +31,6 @@ namespace BangazonAPI.Controllers
         }
 
         // GET api/customers
-
         [HttpGet]
         public async Task<IActionResult> Get(string q, string include)
         {
