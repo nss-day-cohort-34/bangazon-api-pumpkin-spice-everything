@@ -138,7 +138,7 @@ namespace BangazonAPI.Controllers
                    
                     if (include.ToLower() == "product")
                     {
-                        cmd.CommandText = @"SELECT c.Id, c.FirstName, c.LastName, c.CreationDate, c.LastActiveDate, c.IsActive,
+                        cmd.CommandText = @"SELECT c.Id as CustomerId, c.FirstName, c.LastName, c.CreationDate, c.LastActiveDate, c.IsActive,
                                                    p.Id as ProductId, p.ProductName, p.ProductTypeId as ProductTypeId, p.Price, p.Quantity, p.Description
                                           FROM Customer c LEFT JOIN Product p ON c.Id = p.CustomerId
                                          WHERE c.FirstName LIKE @q OR c.LastName LIKE @q OR c.CreationDate LIKE @q OR c.LastActiveDate LIKE @q OR c.IsActive LIKE @q";
@@ -153,7 +153,7 @@ namespace BangazonAPI.Controllers
                             {
                                 Customer customer = new Customer
                                 {
-                                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                    Id = reader.GetInt32(reader.GetOrdinal("CustomerId")),
                                     FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
                                     LastName = reader.GetString(reader.GetOrdinal("LastName")),
                                     CreationDate = reader.GetDateTime(reader.GetOrdinal("CreationDate")),
@@ -171,8 +171,10 @@ namespace BangazonAPI.Controllers
                                 {
                                     Id = reader.GetInt32(reader.GetOrdinal("ProductId")),
                                     ProductName = reader.GetString(reader.GetOrdinal("ProductName")),
+                                    Price = reader.GetDecimal(reader.GetOrdinal("Price")),
                                     Description = reader.GetString(reader.GetOrdinal("Description")),
                                     Quantity = reader.GetInt32(reader.GetOrdinal("Quantity")),
+                                    ProductTypeId = reader.GetInt32(reader.GetOrdinal("ProductTypeId")),
 
                                 };
                                 fromDictionary.ProductsToSell.Add(product);
@@ -230,8 +232,10 @@ namespace BangazonAPI.Controllers
                                 {
                                     Id = reader.GetInt32(reader.GetOrdinal("ProductId")),
                                     ProductName = reader.GetString(reader.GetOrdinal("ProductName")),
+                                    Price = reader.GetDecimal(reader.GetOrdinal("Price")),
                                     Description = reader.GetString(reader.GetOrdinal("Description")),
                                     Quantity = reader.GetInt32(reader.GetOrdinal("Quantity")),
+                                    ProductTypeId = reader.GetInt32(reader.GetOrdinal("ProductTypeId")),
 
                                 };
                                 fromDictionary.ProductsToSell.Add(product);
@@ -339,8 +343,10 @@ namespace BangazonAPI.Controllers
                                 {
                                     Id = reader.GetInt32(reader.GetOrdinal("ProductId")),
                                     ProductName = reader.GetString(reader.GetOrdinal("ProductName")),
+                                    Price = reader.GetDecimal(reader.GetOrdinal("Price")),
                                     Description = reader.GetString(reader.GetOrdinal("Description")),
                                     Quantity = reader.GetInt32(reader.GetOrdinal("Quantity")),
+                                    ProductTypeId = reader.GetInt32(reader.GetOrdinal("ProductTypeId")),
 
                                 };
                                 fromDictionary.ProductsToSell.Add(product);
