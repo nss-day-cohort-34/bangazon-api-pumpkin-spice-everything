@@ -127,7 +127,6 @@ namespace BangazonAPI.Controllers
                         while (reader.Read())
                         {
                             int departmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId"));
-                            int employeeId = reader.GetInt32(reader.GetOrdinal("EmployeeId"));
 
                             if (!deparments.ContainsKey(departmentId)) //have I seen this department before?
                             {
@@ -142,7 +141,9 @@ namespace BangazonAPI.Controllers
                             }
                             Department fromDictionary = deparments[departmentId];
                             if (!reader.IsDBNull(reader.GetOrdinal("EmployeeId")))
-                            {
+                            { 
+                            int employeeId = reader.GetInt32(reader.GetOrdinal("EmployeeId"));
+                            
                                 if (!employees.ContainsKey(employeeId))
                                 {
                                     Employee newEmployee = new Employee
@@ -177,22 +178,22 @@ namespace BangazonAPI.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    if (filter.ToLower() == "budget&_gt=300000")
+                    if (filter.ToLower() == "budget")
                     {
                         cmd.CommandText = @"SELECT d.Id AS DepartmentId, d.Name, d.Budget, e.Id AS EmployeeId, e.FirstName, e.LastName, e.DepartmentId, e.IsSupervisor, e.StartDate
-                                          FROM Department d LEFT JOIN Employee e ON e.departmentId = d.Id";
+                                          FROM Department d LEFT JOIN Employee e ON e.departmentId = d.Id
+                                            WHERE d.Budget > 300000";
 
                         SqlDataReader reader = await cmd.ExecuteReaderAsync();
 
-                        Dictionary<int, Department> deparments = new Dictionary<int, Department>();
+                        Dictionary<int, Department> departments = new Dictionary<int, Department>();
                         Dictionary<int, Employee> employees = new Dictionary<int, Employee>();
 
                         while (reader.Read())
                         {
                             int departmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId"));
-                            int employeeId = reader.GetInt32(reader.GetOrdinal("EmployeeId"));
 
-                            if (!deparments.ContainsKey(departmentId)) //have I seen this department before?
+                            if (!departments.ContainsKey(departmentId)) //have I seen this department before?
                             {
                                 Department newDepartment = new Department
                                 {
@@ -201,11 +202,12 @@ namespace BangazonAPI.Controllers
                                     Budget = reader.GetInt32(reader.GetOrdinal("Budget")),
                                 };
 
-                                deparments.Add(departmentId, newDepartment);
+                                departments.Add(departmentId, newDepartment);
                             }
-                            Department fromDictionary = deparments[departmentId];
+                            Department fromDictionary = departments[departmentId];
                             if (!reader.IsDBNull(reader.GetOrdinal("EmployeeId")))
                             {
+                            int employeeId = reader.GetInt32(reader.GetOrdinal("EmployeeId"));
                                 if (!employees.ContainsKey(employeeId))
                                 {
                                     Employee newEmployee = new Employee
@@ -225,7 +227,7 @@ namespace BangazonAPI.Controllers
 
                         reader.Close();
 
-                        return Ok(deparments.Values);
+                        return Ok(departments.Values);
                     }
                 }
                 return null;
