@@ -29,8 +29,26 @@ namespace BangazonAPI.Controllers
                 return new SqlConnection(_config.GetConnectionString("DefaultConnection"));
             }
         }
-        // GET: api/Department ----code for list of departments
+
         [HttpGet]
+
+        public async Task<IActionResult> Get(string filter, string include)
+        {
+            if (filter != null)
+            {
+                return await GetAllDepartmentsWithBudget(filter);
+            }
+            else if (include != null)
+            {
+                return await GetAllDepartmentsWithEmployees(include);
+            }
+            else
+            {
+                return await GetAllDepartments();
+            }
+        }
+
+        // GET: api/Department ----code for list of departments
         public async Task<IActionResult> GetAllDepartments()
         {
             using (SqlConnection conn = Connection)
@@ -49,7 +67,6 @@ namespace BangazonAPI.Controllers
                     while (reader.Read())
                     {
                         int departmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId"));
-                        int employeeId = reader.GetInt32(reader.GetOrdinal("EmployeeId"));
 
                         if (!deparments.ContainsKey(departmentId)) //have I seen this department before?
                         {
@@ -65,6 +82,7 @@ namespace BangazonAPI.Controllers
                         Department fromDictionary = deparments[departmentId];
                         if (!reader.IsDBNull(reader.GetOrdinal("EmployeeId")))
                         {
+                        int employeeId = reader.GetInt32(reader.GetOrdinal("EmployeeId"));
                             if (!employees.ContainsKey(employeeId))
                             {
                                 Employee newEmployee = new Employee
@@ -82,16 +100,140 @@ namespace BangazonAPI.Controllers
                         }
                     }
 
+                    reader.Close();
+
+                    return Ok(deparments.Values);
+                }
+            }
+        }
+        // code for get all departments with employees using include query
+        public async Task<IActionResult> GetAllDepartmentsWithEmployees(string include)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    if (include.ToLower() == "employee")
+                    {
+                        cmd.CommandText = @"SELECT d.Id AS DepartmentId, d.Name, d.Budget, e.Id AS EmployeeId, e.FirstName, e.LastName, e.DepartmentId, e.IsSupervisor, e.StartDate
+                                          FROM Department d LEFT JOIN Employee e ON e.departmentId = d.Id";
+
+                        SqlDataReader reader = await cmd.ExecuteReaderAsync();
+
+                        Dictionary<int, Department> deparments = new Dictionary<int, Department>();
+                        Dictionary<int, Employee> employees = new Dictionary<int, Employee>();
+
+                        while (reader.Read())
+                        {
+                            int departmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId"));
+                            int employeeId = reader.GetInt32(reader.GetOrdinal("EmployeeId"));
+
+                            if (!deparments.ContainsKey(departmentId)) //have I seen this department before?
+                            {
+                                Department newDepartment = new Department
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
+                                    Name = reader.GetString(reader.GetOrdinal("Name")),
+                                    Budget = reader.GetInt32(reader.GetOrdinal("Budget")),
+                                };
+
+                                deparments.Add(departmentId, newDepartment);
+                            }
+                            Department fromDictionary = deparments[departmentId];
+                            if (!reader.IsDBNull(reader.GetOrdinal("EmployeeId")))
+                            {
+                                if (!employees.ContainsKey(employeeId))
+                                {
+                                    Employee newEmployee = new Employee
+                                    {
+                                        Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
+                                        FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                        LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                        DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
+                                        IsSupervisor = reader.GetBoolean(reader.GetOrdinal("IsSupervisor")),
+                                        StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                                    };
+                                    employees.Add(employeeId, newEmployee);
+                                    fromDictionary.Employees.Add(newEmployee);
+                                }
+                            }
+                        }
+
                         reader.Close();
 
                         return Ok(deparments.Values);
                     }
                 }
+                return null;
             }
-        
+        }
 
-        // GET: api/Department/5
-        [HttpGet("{id}", Name = "GetDept")]
+        // code for get all departments using budget query
+        public async Task<IActionResult> GetAllDepartmentsWithBudget(string filter)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    if (filter.ToLower() == "budget&_gt=300000")
+                    {
+                        cmd.CommandText = @"SELECT d.Id AS DepartmentId, d.Name, d.Budget, e.Id AS EmployeeId, e.FirstName, e.LastName, e.DepartmentId, e.IsSupervisor, e.StartDate
+                                          FROM Department d LEFT JOIN Employee e ON e.departmentId = d.Id";
+
+                        SqlDataReader reader = await cmd.ExecuteReaderAsync();
+
+                        Dictionary<int, Department> deparments = new Dictionary<int, Department>();
+                        Dictionary<int, Employee> employees = new Dictionary<int, Employee>();
+
+                        while (reader.Read())
+                        {
+                            int departmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId"));
+                            int employeeId = reader.GetInt32(reader.GetOrdinal("EmployeeId"));
+
+                            if (!deparments.ContainsKey(departmentId)) //have I seen this department before?
+                            {
+                                Department newDepartment = new Department
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
+                                    Name = reader.GetString(reader.GetOrdinal("Name")),
+                                    Budget = reader.GetInt32(reader.GetOrdinal("Budget")),
+                                };
+
+                                deparments.Add(departmentId, newDepartment);
+                            }
+                            Department fromDictionary = deparments[departmentId];
+                            if (!reader.IsDBNull(reader.GetOrdinal("EmployeeId")))
+                            {
+                                if (!employees.ContainsKey(employeeId))
+                                {
+                                    Employee newEmployee = new Employee
+                                    {
+                                        Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
+                                        FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                        LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                        DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
+                                        IsSupervisor = reader.GetBoolean(reader.GetOrdinal("IsSupervisor")),
+                                        StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                                    };
+                                    employees.Add(employeeId, newEmployee);
+                                    fromDictionary.Employees.Add(newEmployee);
+                                }
+                            }
+                        }
+
+                        reader.Close();
+
+                        return Ok(deparments.Values);
+                    }
+                }
+                return null;
+            }
+        }
+
+        // GET: api/Department/1   -----code to get a single department without employees
+        [HttpGet("{id}", Name = "GetDepartment")]
         public async Task<IActionResult> GetDepartment(int id)
         {
             using (SqlConnection conn = Connection)
@@ -99,9 +241,10 @@ namespace BangazonAPI.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT Id, Name, Budget
-                                        FROM Department
-                                        WHERE Id = @id";
+                    cmd.CommandText = @"SELECT d.Id AS DepartmentId, d.Name, d.Budget, e.Id AS EmployeeId, 
+                                                e.FirstName, e.LastName, e.DepartmentId, e.IsSupervisor, e.StartDate
+                                        FROM Department d LEFT JOIN Employee e ON e.departmentId = d.Id
+                                        WHERE DepartmentId = @id";
 
                     cmd.Parameters.Add(new SqlParameter("@id", id));
                     SqlDataReader reader = await cmd.ExecuteReaderAsync();
@@ -111,7 +254,7 @@ namespace BangazonAPI.Controllers
                     {
                         newDepartment = new Department
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Id = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
                             Name = reader.GetString(reader.GetOrdinal("Name")),
                             Budget = reader.GetInt32(reader.GetOrdinal("Budget"))
                         };
@@ -151,14 +294,72 @@ namespace BangazonAPI.Controllers
 
         // PUT: api/Department/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<IActionResult> Put(int id, [FromBody] Department department)
         {
+            try
+            {
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"
+                            UPDATE Department
+                            SET Name = @name, Budget = @budget
+                            WHERE Id = @id
+                        ";
+                        cmd.Parameters.Add(new SqlParameter("@id", department.Id));
+                        cmd.Parameters.Add(new SqlParameter("@name", department.Name));
+                        cmd.Parameters.Add(new SqlParameter("@budget", department.Budget));
+                        
+
+                        int rowsAffected = await cmd.ExecuteNonQueryAsync();
+
+                        if (rowsAffected > 0)
+                        {
+                            return new StatusCodeResult(StatusCodes.Status204NoContent);
+                        }
+
+                        throw new Exception("No rows affected");
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                if (!DepartmentExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
 
-        // DELETE: api/ApiWithActions/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        // DELETE: api/ApiWithActions/5 NOT ON TICKET
+        //[HttpDelete("{id}")]
+        //public void Delete(int id)
+        //{
+        //}
+
+
+        //method to check if resource exists
+        private bool DepartmentExists(int id)
         {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT Id FROM Department WHERE Id = @id";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    return reader.Read();
+                }
+            }
         }
     }
 }
