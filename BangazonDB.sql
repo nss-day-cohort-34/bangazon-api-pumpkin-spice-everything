@@ -4,7 +4,6 @@
 --INSERT INTO CUSTOMER (FirstName, LastName, CreationDate, LastActiveDate, IsActive) VALUES ('Jenna', 'Solis', 2019-11-05, 2019-11-05, 1);
 --INSERT INTO CUSTOMER (FirstName, LastName, CreationDate, LastActiveDate, IsActive) VALUES ('Bryan', 'Nilsen', 2019-11-05, 2019-11-05, 1);
 
---INSERT INTO EMPLOYEE (FirstName, LastName, DepartmentId, IsSupervisor, StartDate) VALUES ('Carl', 'Barringer', 5, 1, 2019-11-05);
 --INSERT INTO EMPLOYEE (FirstName, LastName, DepartmentId, IsSupervisor, StartDate) VALUES ('Bennett', 'Foster', 1, 1, 2019-11-05);
 --INSERT INTO EMPLOYEE (FirstName, LastName, DepartmentId, IsSupervisor, StartDate) VALUES ('Brian', 'Wilson', 4, 1, 2019-11-05);
 --INSERT INTO EMPLOYEE (FirstName, LastName, DepartmentId, IsSupervisor, StartDate) VALUES ('Kevin', 'Sadler', 2, 1, 2019-11-05);
