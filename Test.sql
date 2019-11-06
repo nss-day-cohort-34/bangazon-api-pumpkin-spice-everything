@@ -16,3 +16,9 @@ select * from PaymentType;
 select * from customer;
 
 --delete from customer where id = 10;
+
+UPDATE PaymentType
+    SET AcctNumber = '567567567',
+        [Type] = 'new type',
+        CustomerId = 1
+    WHERE Id = 1;

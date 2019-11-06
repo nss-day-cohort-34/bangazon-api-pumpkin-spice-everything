@@ -152,13 +152,15 @@ namespace BangazonAPI.Controllers
                     {
                         cmd.CommandText = @"
                             UPDATE PaymentType
-                            SET AcctNumber = @acctNumber, [Type] = @type, CustomerId = @customerId
+                            SET AcctNumber = @acctNumber
+                                [Type] = @type
+                                CustomerId = @customerId
                             WHERE Id = @id";
-
                         cmd.Parameters.Add(new SqlParameter("@id", paymentType.Id));
                         cmd.Parameters.Add(new SqlParameter("@acctNumber", paymentType.AcctNumber));
                         cmd.Parameters.Add(new SqlParameter("@type", paymentType.Type));
                         cmd.Parameters.Add(new SqlParameter("@customerId", paymentType.CustomerId));
+
 
                         int rowsAffected = await cmd.ExecuteNonQueryAsync();
 
