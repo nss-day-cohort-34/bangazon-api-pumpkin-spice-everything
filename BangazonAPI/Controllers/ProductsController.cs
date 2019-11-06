@@ -42,7 +42,7 @@ namespace BangazonAPI.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT p.Id AS ProductId, p.ProductName, p.Price, p.Description, p.Quantity, p.ProductTypeId,
+                    cmd.CommandText = @"SELECT p.Id, p.ProductName, p.Price, p.Description, p.Quantity, p.ProductTypeId,
                                         pt.TypeName,
                                         p.CustomerId AS SellerId,
                                         c.FirstName, c.LastName, c.CreationDate, c.LastActiveDate, c.IsActive
@@ -53,12 +53,12 @@ namespace BangazonAPI.Controllers
                     Dictionary<int, Product> products = new Dictionary<int, Product>();
                     while (reader.Read())
                     {
-                        int productId = reader.GetInt32(reader.GetOrdinal("ProductId"));
+                        int productId = reader.GetInt32(reader.GetOrdinal("Id"));
                         if (!products.ContainsKey(productId))
                         {
                             Product newProduct = new Product
                             {
-                                Id = reader.GetInt32(reader.GetOrdinal("ProductId")),
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
                                 ProductName = reader.GetString(reader.GetOrdinal("ProductName")),
                                 Price = reader.GetDecimal(reader.GetOrdinal("Price")),
                                 Description = reader.GetString(reader.GetOrdinal("Description")),
@@ -89,7 +89,7 @@ namespace BangazonAPI.Controllers
                         {
                             ProductType aProductType = new ProductType()
                             {
-                                Id = reader.GetInt32(reader.GetOrdinal("ProductId")),
+                                Id = reader.GetInt32(reader.GetOrdinal("ProductTypeId")),
                                 TypeName = reader.GetString(reader.GetOrdinal("TypeName"))                          
                             };
                             fromDictionary.ProductType = aProductType;
@@ -159,7 +159,7 @@ namespace BangazonAPI.Controllers
                         {
                             ProductType aProductType = new ProductType()
                             {
-                                Id = reader.GetInt32(reader.GetOrdinal("ProductId")),
+                                Id = reader.GetInt32(reader.GetOrdinal("ProductTypeId")),
                                 TypeName = reader.GetString(reader.GetOrdinal("TypeName"))
                             };
                             fromDictionary.ProductType = aProductType;
@@ -218,8 +218,9 @@ namespace BangazonAPI.Controllers
                             UPDATE Product
                             SET ProductName = @productName, Price = @price, 
                             Description = @description, Quantity = @quantity, 
-                            ProductTypeId = @productTypeId, CustomerId = @customerTypeId
+                            ProductTypeId = @productTypeId, CustomerId = @customerId
                             WHERE Id = @id";
+                        cmd.Parameters.Add(new SqlParameter("@id", product.Id));
                         cmd.Parameters.Add(new SqlParameter("@productName", product.ProductName));
                         cmd.Parameters.Add(new SqlParameter("@price", product.Price));
                         cmd.Parameters.Add(new SqlParameter("@description", product.Description));
