@@ -149,7 +149,7 @@ namespace BangazonAPI.Controllers
 
         // POST api/customers
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] ProductType productType)
+        public IActionResult Post([FromBody] ProductType productType)
         {
             using (SqlConnection conn = Connection)
             {
@@ -163,9 +163,9 @@ namespace BangazonAPI.Controllers
                         VALUES (@typeName)";
                     cmd.Parameters.Add(new SqlParameter("@typeName", productType.TypeName));         
 
-                    productType.Id = (int)await cmd.ExecuteScalarAsync();
+                    cmd.ExecuteNonQuery();
 
-                    return CreatedAtRoute("GetProductType", new { id = productType.Id }, productType);
+                    return Created("api/productType", productType);
                 }
             }
         }
