@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using BangazonAPI.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+
 
 namespace BangazonAPI.Controllers
 {
@@ -11,11 +16,92 @@ namespace BangazonAPI.Controllers
     [ApiController]
     public class EmployeeController : ControllerBase
     {
-        // GET: api/Employee
-        [HttpGet]
-        public IEnumerable<string> Get()
+        private readonly IConfiguration _config;
+
+        public EmployeeController(IConfiguration config)
         {
-            return new string[] { "value1", "value2" };
+            _config = config;
+        }
+
+        private SqlConnection Connection
+        {
+            get
+            {
+                return new SqlConnection(_config.GetConnectionString("DefaultConnection"));
+            }
+        }
+
+
+        // GET: api/Employee ---code for get list of employees with department and computer
+        [HttpGet]
+        public async Task<IActionResult> GetAllEmployees()
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                                    SELECT e.Id AS EmployeeId, e.FirstName, e.LastName, e.DepartmentId, 
+                                          e.IsSupervisor, e.StartDate, d.Name AS DepartmentName, c.Id AS ComputerId, c.Manufacturer, c.Make
+                                          FROM Employee e 
+                                          LEFT JOIN Department d ON e.DepartmentId = d.Id
+                                          LEFT JOIN ComputerEmployee ce ON ce.EmployeeId = e.Id 
+                                          LEFT JOIN Computer c ON ce.ComputerId = c.Id ";
+                    SqlDataReader reader = await cmd.ExecuteReaderAsync();
+
+                    Dictionary<int, Employee> employees = new Dictionary<int, Employee>();
+                    Dictionary<int, Department> departments = new Dictionary<int, Department>();
+                    Dictionary<int, Computer> computers = new Dictionary<int, Computer>();
+
+                    while (reader.Read())
+                    {
+                        int employeeId = reader.GetInt32(reader.GetOrdinal("EmployeeId")); //get the id
+                        if (!employees.ContainsKey(employeeId)) //have I seen this employee before?
+                        {
+                            Employee newEmployee = new Employee() //() if it does not..then lets create it.
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
+                                FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
+                                IsSupervisor = reader.GetBoolean(reader.GetOrdinal("IsSupervisor")),
+                                StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                                Department = new Department()
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
+                                    Name = reader.GetString(reader.GetOrdinal("DepartmentName")),
+                                }
+                            };
+                            employees.Add(employeeId, newEmployee);
+                        }
+
+                        Employee fromDictionary = employees[employeeId];
+
+                        if (!reader.IsDBNull(reader.GetOrdinal("ComputerId"))) //if i have an computer id then it will run.
+                        {
+                            Computer newComputer = new Computer()
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("ComputerId")),
+                                Make = reader.GetString(reader.GetOrdinal("Make")), 
+                                Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
+                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate")),
+                                DecommissionDate = reader.GetDateTime(reader.GetOrdinal("DecommissionDate"))
+                            };
+                            //fromDictionary.employees.Add(anExercise); 
+                            fromDictionary.employees
+                        }
+                        /*
+                            The Ok() method is an abstraction that constructs
+                            a new HTTP response with a 200 status code, and converts
+                            your IEnumerable into a JSON string to be sent back to
+                            the requessting client application.
+                        */
+                    }
+                    reader.Close();
+                    return Ok(students.Values);
+                }
+            }
         }
 
         // GET: api/Employee/5
