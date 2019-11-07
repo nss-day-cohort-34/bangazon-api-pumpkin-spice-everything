@@ -58,7 +58,7 @@ namespace TestBangazonAPI
 
 
                 string responseBody = await response.Content.ReadAsStringAsync();
-                var department = JsonConvert.DeserializeObject<Customer>(responseBody);
+                var department = JsonConvert.DeserializeObject<Department>(responseBody);
                 /*
                     ASSERT
                 */
