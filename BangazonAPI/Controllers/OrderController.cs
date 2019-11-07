@@ -31,13 +31,17 @@ namespace BangazonAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get(string q, string include)
+        public async Task<IActionResult> Get(string completed, string include)
         {
-         if (include != null)
+         if (completed == null && include != null)
             {
-                return await GetAllOrdersWithProducts(include);
+                return await GetAllOrdersWithInclude(include);
             }
-            else
+         else if (completed != null && include == null)
+            {
+                return await GetAllOrdersWithCompleted(completed);
+            }
+         else
             {
                 return await GetAllOrders();
             }
@@ -113,7 +117,7 @@ namespace BangazonAPI.Controllers
         }
 
         
-        public async Task<IActionResult> GetAllOrdersWithProducts(string include)
+        public async Task<IActionResult> GetAllOrdersWithInclude(string include)
         {
             using (SqlConnection conn = Connection)
             {
@@ -161,6 +165,120 @@ namespace BangazonAPI.Controllers
 
                                 };
                                 fromDictionary.Products.Add(product);
+                            }
+                        }
+
+                        reader.Close();
+                        return Ok(orders.Values);
+                    }
+
+                    if (include.ToLower() == "customers")
+                    {
+                        cmd.CommandText = @"SELECT o.Id as OrderId, o.CustomerId, o.PaymentTypeId, o.OrderDate, 
+	                                                c.Id as CustomerId, c.FirstName, c.LastName, c.CreationDate as AccountCreated, c.LastActiveDate, c.IsActive
+                                            FROM [Order] o LEFT JOIN Customer c ON o.CustomerId = c.Id";
+                        SqlDataReader reader = cmd.ExecuteReader();
+
+                        Dictionary<int, Order> orders = new Dictionary<int, Order>();
+                        while (reader.Read())
+                        {
+                            int orderId = reader.GetInt32(reader.GetOrdinal("OrderId"));
+                            if (!orders.ContainsKey(orderId))
+                            {
+                                Order order = new Order
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("OrderId")),
+                                    CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
+                                    PaymentTypeId = reader.GetInt32(reader.GetOrdinal("PaymentTypeId")),
+                                    OrderDate = reader.GetDateTime(reader.GetOrdinal("OrderDate")),
+                                };
+
+                                orders.Add(orderId, order);
+                            }
+                            Order fromDictionary = orders[orderId];
+
+                            if (!reader.IsDBNull(reader.GetOrdinal("CustomerId")))
+                            {
+                                Customer customer = new Customer
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("CustomerId")),
+                                    FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                    LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                    CreationDate = reader.GetDateTime(reader.GetOrdinal("AccountCreated")),
+                                    LastActiveDate = reader.GetDateTime(reader.GetOrdinal("LastActiveDate")),
+                                    IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+
+                                };
+                                fromDictionary.Customer = customer;
+                            }
+                        }
+
+                        reader.Close();
+                        return Ok(orders.Values);
+                    }
+
+                }
+                return null;
+            }
+        }
+
+        public async Task<IActionResult> GetAllOrdersWithCompleted(string completed)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+
+                    if (completed.ToLower() == "true")
+                    {
+                        cmd.CommandText = @"SELECT Id as OrderId, CustomerId, PaymentTypeId, OrderDate
+                                            FROM [Order] WHERE IsCompleted = 1";
+                        SqlDataReader reader = cmd.ExecuteReader();
+
+                        Dictionary<int, Order> orders = new Dictionary<int, Order>();
+                        while (reader.Read())
+                        {
+                            int orderId = reader.GetInt32(reader.GetOrdinal("OrderId"));
+                            if (!orders.ContainsKey(orderId))
+                            {
+                                Order order = new Order
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("OrderId")),
+                                    CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
+                                    PaymentTypeId = reader.GetInt32(reader.GetOrdinal("PaymentTypeId")),
+                                    OrderDate = reader.GetDateTime(reader.GetOrdinal("OrderDate")),
+                                };
+
+                                orders.Add(orderId, order);
+                            }                            
+                        }
+
+                        reader.Close();
+                        return Ok(orders.Values);
+                    }
+
+                    if (completed.ToLower() == "false")
+                    {
+                        cmd.CommandText = @"SELECT Id as OrderId, CustomerId, PaymentTypeId, OrderDate 
+                                            FROM [Order]  WHERE IsCompleted = 0;";
+                        SqlDataReader reader = cmd.ExecuteReader();
+
+                        Dictionary<int, Order> orders = new Dictionary<int, Order>();
+                        while (reader.Read())
+                        {
+                            int orderId = reader.GetInt32(reader.GetOrdinal("OrderId"));
+                            if (!orders.ContainsKey(orderId))
+                            {
+                                Order order = new Order
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("OrderId")),
+                                    CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
+                                    PaymentTypeId = reader.GetInt32(reader.GetOrdinal("PaymentTypeId")),
+                                    OrderDate = reader.GetDateTime(reader.GetOrdinal("OrderDate")),
+                                };
+
+                                orders.Add(orderId, order);
                             }
                         }
 
