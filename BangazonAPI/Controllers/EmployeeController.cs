@@ -43,15 +43,16 @@ namespace BangazonAPI.Controllers
                 {
                     cmd.CommandText = @"
                                     SELECT e.Id AS EmployeeId, e.FirstName, e.LastName, e.DepartmentId, 
-                                          e.IsSupervisor, e.StartDate, d.Name AS DepartmentName, c.Id AS ComputerId, c.Manufacturer, c.Make
+                                          e.IsSupervisor, e.StartDate, d.Id AS DepartmentId, d.Name AS DepartmentName, d.Budget, 
+                                          c.Id AS ComputerId, c.Manufacturer, c.Make, c.PurchaseDate, c.DecomissionDate, 
+                                          ce.Id AS ComputerEmployeeId
                                           FROM Employee e 
                                           LEFT JOIN Department d ON e.DepartmentId = d.Id
                                           LEFT JOIN ComputerEmployee ce ON ce.EmployeeId = e.Id 
-                                          LEFT JOIN Computer c ON ce.ComputerId = c.Id ";
+                                          LEFT JOIN Computer c ON ce.ComputerId = c.Id";
                     SqlDataReader reader = await cmd.ExecuteReaderAsync();
 
                     Dictionary<int, Employee> employees = new Dictionary<int, Employee>();
-                    Dictionary<int, Department> departments = new Dictionary<int, Department>();
                     Dictionary<int, Computer> computers = new Dictionary<int, Computer>();
 
                     while (reader.Read())
@@ -80,16 +81,28 @@ namespace BangazonAPI.Controllers
 
                         if (!reader.IsDBNull(reader.GetOrdinal("ComputerId"))) //if i have an computer id then it will run.
                         {
-                            Computer newComputer = new Computer()
+                            if (!reader.IsDBNull(reader.GetOrdinal("DecomissionDate")))
                             {
-                                Id = reader.GetInt32(reader.GetOrdinal("ComputerId")),
-                                Make = reader.GetString(reader.GetOrdinal("Make")), 
-                                Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
-                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate")),
-                                DecommissionDate = reader.GetDateTime(reader.GetOrdinal("DecommissionDate"))
-                            };
-                            //fromDictionary.employees.Add(anExercise); 
-                            fromDictionary.employees
+                                Computer newComputer = new Computer()
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("ComputerId")),
+                                    Make = reader.GetString(reader.GetOrdinal("Make")),
+                                    Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
+                                    PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate")),
+                                    DecommissionDate = reader.GetDateTime(reader.GetOrdinal("DecomissionDate"))
+                                };
+                                fromDictionary.Computers.Add(newComputer);
+                            } else
+                            {
+                                Computer newComputer = new Computer()
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("ComputerId")),
+                                    Make = reader.GetString(reader.GetOrdinal("Make")),
+                                    Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
+                                    PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate")),
+                                };
+                                fromDictionary.Computers.Add(newComputer);
+                            }
                         }
                         /*
                             The Ok() method is an abstraction that constructs
@@ -99,7 +112,7 @@ namespace BangazonAPI.Controllers
                         */
                     }
                     reader.Close();
-                    return Ok(students.Values);
+                    return Ok(employees.Values);
                 }
             }
         }
