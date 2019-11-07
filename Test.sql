@@ -26,4 +26,3 @@ UPDATE PaymentType
 
 	SELECT Id, PurchaseDate, DecomissionDate, Make, Manufacturer
 	FROM Computer;
-	select * from Order;
