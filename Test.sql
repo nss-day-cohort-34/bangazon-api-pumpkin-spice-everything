@@ -22,3 +22,8 @@ UPDATE PaymentType
         [Type] = 'new type',
         CustomerId = 1
     WHERE Id = 1;
+
+
+	SELECT Id, PurchaseDate, DecomissionDate, Make, Manufacturer
+	FROM Computer;
+	select * from Order;
