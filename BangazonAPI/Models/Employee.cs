@@ -31,7 +31,7 @@ namespace BangazonAPI.Models
         public DateTime StartDate { get; set; }
 
         //list of computers and list of training programs
-        public List<Computer> Computers { get; set; } = new List<Computer>();
+        public Computer Computer { get; set; }
         public List<TrainingProgram> TrainingPrograms { get; set; } = new List<TrainingProgram>();
         
 
