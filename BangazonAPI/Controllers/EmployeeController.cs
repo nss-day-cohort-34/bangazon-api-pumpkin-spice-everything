@@ -179,10 +179,31 @@ namespace BangazonAPI.Controllers
             }
         }
 
-        // POST: api/Employee
+        // POST: api/Employee  ---Create an Employee
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task<IActionResult> Post([FromBody] Employee employee)
         {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        INSERT INTO Employee (FirstName, LastName, DepartmentId, IsSupervisor, StartDate)
+                        OUTPUT INSERTED.Id
+                        VALUES (@firstName, @lastName, @departmentId, @IsSupervisor, @startDate)
+                    ";
+                    cmd.Parameters.Add(new SqlParameter("@firstName", employee.FirstName));
+                    cmd.Parameters.Add(new SqlParameter("@lastName", employee.LastName));
+                    cmd.Parameters.Add(new SqlParameter("@departmentId", employee.DepartmentId));
+                    cmd.Parameters.Add(new SqlParameter("@isSupervisor", employee.IsSupervisor));
+                    cmd.Parameters.Add(new SqlParameter("@startDate", employee.StartDate));
+
+                    employee.Id = (int)await cmd.ExecuteScalarAsync();
+
+                    return CreatedAtRoute("GetEmployee", new { id = employee.Id }, employee);
+                }
+            }
         }
 
         // PUT: api/Employee/5
