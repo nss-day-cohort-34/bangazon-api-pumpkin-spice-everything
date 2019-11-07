@@ -168,7 +168,7 @@ namespace BangazonAPI.Controllers
 
                     reader.Close();
 
-                    return Ok(products.Values);
+                    return Ok(products.Values.First());
                 }
             }
         }
