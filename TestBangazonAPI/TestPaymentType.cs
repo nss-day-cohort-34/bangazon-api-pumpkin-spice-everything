@@ -41,134 +41,137 @@ namespace TestBangazonAPI
         }
         //---------------------------------------------//
         //GET single product
-        //[Fact]
-        //public async Task Test_Get_ProductTypes()
-        //{
-        //    using (var client = new APIClientProvider().Client)
-        //    {
-        //        /*
-        //            ARRANGE
-        //        */
+        [Fact]
+        public async Task Test_Get_PaymentType()
+        {
+            using (var client = new APIClientProvider().Client)
+            {
+                /*
+                    ARRANGE
+                */
 
 
-        //        /*
-        //            ACT
-        //        */
-        //        var response = await client.GetAsync("/api/ProductTypes/1");
+                /*
+                    ACT
+                */
+                var response = await client.GetAsync("/api/paymenttype/11");
 
 
-        //        string responseBody = await response.Content.ReadAsStringAsync();
-        //        var productType = JsonConvert.DeserializeObject<Product>(responseBody);
-        //        /*
-        //            ASSERT
-        //        */
-        //        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        //        Assert.True(productType.Id > 0);
-        //    }
-        //}
+                string responseBody = await response.Content.ReadAsStringAsync();
+                var paymentType = JsonConvert.DeserializeObject<PaymentType>(responseBody);
+                /*
+                    ASSERT
+                */
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.True(paymentType.Id > 0);
+            }
+        }
 
         //////---------------------------------------------//
-        //////PUT Editing a producttypes
-        //[Fact]
-        //public async Task TestPutProductType()
-        //{
+        //////PUT Editing a PaymentTypes
+        [Fact]
+        public async Task TestPutPaymentType()
+        {
 
 
-        //    using (var client = new APIClientProvider().Client)
-        //    {
-        //        //Put Section
+            using (var client = new APIClientProvider().Client)
+            {
+                //Put Section
 
-        //        ProductType modifiedProductType = new ProductType
-        //        {
-        //            Id = 1,
-        //            TypeName = "Home Electronics",
+                PaymentType modifiedPaymentType = new PaymentType
+                {
+                    Id = 15,
+                    Type = "PayPal",
+                    AcctNumber = "12345600",
+                    CustomerId = 3,
+                };
+                var modifiedPaymentTypeAsJSON = JsonConvert.SerializeObject(modifiedPaymentType);
 
-        //        };
-        //        var modifiedProductTypeAsJSON = JsonConvert.SerializeObject(modifiedProductType);
+                var response = await client.PutAsync(
+                    "api/paymenttype/15",
+                    new StringContent(modifiedPaymentTypeAsJSON, Encoding.UTF8, "application/json"));
+                string responseBody = await response.Content.ReadAsStringAsync();
 
-        //        var response = await client.PutAsync(
-        //            "api/producttypes/1",
-        //            new StringContent(modifiedProductTypeAsJSON, Encoding.UTF8, "application/json"));
-        //        string responseBody = await response.Content.ReadAsStringAsync();
+                Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
-        //        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+                /*
+                GET section
+                Verify that the PUT operation was successful
+                */
 
-        //        /*
-        //        GET section
-        //        Verify that the PUT operation was successful
-        //        */
+                var getPaymentType = await client.GetAsync("/api/paymenttype/15");
+                getPaymentType.EnsureSuccessStatusCode();
 
-        //        var getProductType = await client.GetAsync("/api/producttypes/1");
-        //        getProductType.EnsureSuccessStatusCode();
+                string getPaymentTypeBody = await getPaymentType.Content.ReadAsStringAsync();
+                PaymentType newPaymentType = JsonConvert.DeserializeObject<PaymentType>(getPaymentTypeBody);
 
-        //        string getProductTypeBody = await getProductType.Content.ReadAsStringAsync();
-        //        ProductType newProductType = JsonConvert.DeserializeObject<ProductType>(getProductTypeBody);
+                Assert.Equal(HttpStatusCode.OK, getPaymentType.StatusCode);
 
-        //        Assert.Equal(HttpStatusCode.OK, getProductType.StatusCode);
+            }
+        }
 
-        //    }
-        //}
+        //POST test for posting a new ProductType
+        [Fact]
 
-        ////POST test for posting a new ProductType
-        //[Fact]
-
-        //public async Task TestPostNewProductType()
-        //{
-        //    using (var client = new APIClientProvider().Client)
-        //    {
-        //        // Arrange
-        //        // create a new producttype object to send to the database
-        //        ProductType newProductType = new ProductType
-        //        {
-
-        //            TypeName = "Baby",
-
-
-        //        };
-        //        //Serialize the object into a json string
-        //        var newProductTypeAsJson = JsonConvert.SerializeObject(newProductType);
-
-        //        //Act
-        //        //User the client to send the request and store the response
-        //        var response = await client.PostAsync("api/producttypes",
-        //            new StringContent(newProductTypeAsJson, Encoding.UTF8, "application/json"));
-
-        //        //Store the json body of the response
-        //        string responseBody = await response.Content.ReadAsStringAsync();
-
-        //        //Deserialize the JSON into an instance of a ProductType
-        //        var newProductTypeObject = JsonConvert.DeserializeObject<ProductType>(responseBody);
+        public async Task TestPostNewPaymentType()
+        {
+            using (var client = new APIClientProvider().Client)
+            {
+                // Arrange
+                // create a new paymenttype object to send to the database
+                PaymentType newPaymentType = new PaymentType
+                {
+                    Type = "Google Pay",
+                    AcctNumber = "9876543421",
+                    CustomerId = 2,
 
 
-        //        //ASSERT
+
+                };
+                //Serialize the object into a json string
+                var newPaymentTypeAsJson = JsonConvert.SerializeObject(newPaymentType);
+
+                //Act
+                //User the client to send the request and store the response
+                var response = await client.PostAsync("api/paymenttype",
+                    new StringContent(newPaymentTypeAsJson, Encoding.UTF8, "application/json"));
+
+                //Store the json body of the response
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                //Deserialize the JSON into an instance of a PaymentType
+                var newPaymentTypeObject = JsonConvert.DeserializeObject<PaymentType>(responseBody);
 
 
-        //        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        //        Assert.Equal("Baby", newProductTypeObject.TypeName);
+                //ASSERT
 
 
-        //    }
-        //}
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.Equal("Google Pay", newPaymentTypeObject.Type);
 
-        ////test for deleting a producttype
-        //[Fact]
-        //public async Task TestDeleteProductType()
-        //{
-        //    using (var client = new APIClientProvider().Client)
-        //    {
-        //        int deleteId = 12;
 
-        //        //Arrange
+            }
+        }
 
-        //        //Act
-        //        var response = await client.DeleteAsync($"/api/producttypes/{deleteId}");
-        //        string responseBody = await response.Content.ReadAsStringAsync();
-        //        var student = JsonConvert.DeserializeObject<ProductType>(responseBody);
+        ////test for deleting a PaymentType
+        [Fact]
+        public async Task TestDeletePaymentType()
+        {
+            using (var client = new APIClientProvider().Client)
+            {
+                int deleteId = 17;
 
-        //        //Assert
-        //        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                //Arrange
 
-        //    }
-        //}
+                //Act
+                var response = await client.DeleteAsync($"/api/paymenttype/{deleteId}");
+                string responseBody = await response.Content.ReadAsStringAsync();
+                var student = JsonConvert.DeserializeObject<ProductType>(responseBody);
+
+                //Assert
+                Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+            }
+        }
     }
 }
