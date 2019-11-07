@@ -140,7 +140,7 @@ namespace BangazonAPI.Controllers
 
                     reader.Close();
 
-                    return Ok(productTypes.Values);
+                    return Ok(productTypes.Values.First());
                 }
             }
         }
