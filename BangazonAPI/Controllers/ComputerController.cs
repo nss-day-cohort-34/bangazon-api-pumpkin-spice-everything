@@ -96,33 +96,32 @@ namespace BangazonAPI.Controllers
                     Computer computer = null;
 
                     //int computerId = reader.GetInt32(reader.GetOrdinal("Id"));
-
-                    if (!reader.IsDBNull(reader.GetOrdinal("DecomissionDate")))
+                    while (reader.Read())
                     {
-                        Computer newComputer = new Computer
+                        if (!reader.IsDBNull(reader.GetOrdinal("DecomissionDate")))
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            PurchaseDate = reader.GetDateTime(reader.GetOrdinal("Purchasedate")),
-                            DecommissionDate = reader.GetDateTime(reader.GetOrdinal("DecomissionDate")),
-                            Make = reader.GetString(reader.GetOrdinal("Make")),
-                            Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
-                        };
-                        reader.Close();
-                        return Ok(computer);
-                    }
-                    else
-                    {
-                        Computer newComputer = new Computer
+                            computer = new Computer
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("Purchasedate")),
+                                DecommissionDate = reader.GetDateTime(reader.GetOrdinal("DecomissionDate")),
+                                Make = reader.GetString(reader.GetOrdinal("Make")),
+                                Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
+                            };
+                        }
+                        else
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            PurchaseDate = reader.GetDateTime(reader.GetOrdinal("Purchasedate")),
-                            Make = reader.GetString(reader.GetOrdinal("Make")),
-                            Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
-                        };
-                   
-                        reader.Close();
-                        return Ok(computer);
+                            computer = new Computer
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("Purchasedate")),
+                                Make = reader.GetString(reader.GetOrdinal("Make")),
+                                Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
+                            };
+                        }
                     }
+                        reader.Close();
+                        return Ok(computer);                   
                 }
             }
         }
@@ -155,8 +154,51 @@ namespace BangazonAPI.Controllers
 
         // PUT: api/Computer/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<IActionResult> Put(int id, [FromBody] Computer computer)
         {
+            try
+            {
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"
+                            UPDATE Computer
+                            SET PurchaseDate = @purchaseDate,
+                                DecomissionDate = @decomissionDate,
+                                Make = @make,
+                                Manufacturer = @manufacturer
+                            WHERE Id = @id";
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
+                        cmd.Parameters.Add(new SqlParameter("@purchaseDate", computer.PurchaseDate));
+                        cmd.Parameters.Add(new SqlParameter("@decomissionDate", computer.DecommissionDate));
+                        cmd.Parameters.Add(new SqlParameter("@make", computer.Make));
+                        cmd.Parameters.Add(new SqlParameter("@manufacturer", computer.Manufacturer));
+
+
+                        int rowsAffected = await cmd.ExecuteNonQueryAsync();
+
+                        if (rowsAffected > 0)
+                        {
+                            return new StatusCodeResult(StatusCodes.Status204NoContent);
+                        }
+
+                        throw new Exception("No rows affected");
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                if (!ComputerExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
 
         // DELETE: api/ApiWithActions/5
