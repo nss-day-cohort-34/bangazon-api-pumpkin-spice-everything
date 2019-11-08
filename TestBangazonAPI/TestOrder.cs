@@ -41,6 +41,33 @@ namespace TestBangazonAPI
         }
 
         //---------------------------------------------//
+        [Fact]
+        public async Task Test_Get_All_Open_Orders()
+        {
+            using (var client = new APIClientProvider().Client)
+            {
+                /*
+                    ARRANGE
+                */
+
+
+                /*
+                    ACT
+                */
+                var response = await client.GetAsync("/api/order?completed=false");
+
+
+                string responseBody = await response.Content.ReadAsStringAsync();
+                var orders = JsonConvert.DeserializeObject<List<Order>>(responseBody);
+                /*
+                    ASSERT
+                */
+                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                Assert.True(orders.Count > 0);
+            }
+        }
+
+        //---------------------------------------------//
         //GET single order
         [Fact]
         public async Task Test_Get_Order()
@@ -85,7 +112,7 @@ namespace TestBangazonAPI
                     OrderDate = DateTime.Today,
                     PaymentTypeId = 12,
                     CustomerId = 1,
-                    isCompleted = false
+                    IsCompleted = false
                     
                 };
                 var modifiedOrderAsJSON = JsonConvert.SerializeObject(modifiedOrder);
@@ -123,12 +150,12 @@ namespace TestBangazonAPI
             {
                 // Arrange
                 // create a new producttype object to send to the database
-                Order newOrder = new Order()
+                Order newOrder = new Order
                 {
                     CustomerId = 3,
                     PaymentTypeId = 3,
                     OrderDate = DateTime.Now,
-                    isCompleted = false
+                    IsCompleted = false
 
 
                 };
@@ -137,7 +164,7 @@ namespace TestBangazonAPI
 
                 //Act
                 //User the client to send the request and store the response
-                var response = await client.PostAsync("api/order",
+                var response = await client.PostAsync("api/order/",
                     new StringContent(newOrderAsJson, Encoding.UTF8, "application/json"));
 
                 //Store the json body of the response
