@@ -109,7 +109,7 @@ namespace TestBangazonAPI
                 Order modifiedOrder = new Order
                 {
                    
-                    OrderDate = DateTime.Today,
+                    OrderDate = DateTime.Now,
                     PaymentTypeId = 12,
                     CustomerId = 1,
                     IsCompleted = false
