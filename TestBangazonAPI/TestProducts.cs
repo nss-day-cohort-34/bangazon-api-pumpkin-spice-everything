@@ -54,7 +54,7 @@ namespace TestBangazonAPI
                 /*
                     ACT
                 */
-                var response = await client.GetAsync("/api/products/33");
+                var response = await client.GetAsync("/api/products/3");
 
 
                 string responseBody = await response.Content.ReadAsStringAsync();
@@ -80,7 +80,7 @@ namespace TestBangazonAPI
 
                 Product modifiedProduct = new Product
                 {
-                    Id = 30,
+                    Id = 3,
                     ProductName = "iPadPro",
                     Price = 600,
                     Description = "An overpriced tablet",
@@ -92,7 +92,7 @@ namespace TestBangazonAPI
                 var modifiedProductAsJSON = JsonConvert.SerializeObject(modifiedProduct);
 
                 var response = await client.PutAsync(
-                    "api/products/30",
+                    "api/products/3",
                     new StringContent(modifiedProductAsJSON, Encoding.UTF8, "application/json"));
                 string responseBody = await response.Content.ReadAsStringAsync();
 
@@ -103,7 +103,7 @@ namespace TestBangazonAPI
                 Verify that the PUT operation was successful
                 */
 
-                var getProduct = await client.GetAsync("/api/products/30");
+                var getProduct = await client.GetAsync("/api/products/3");
                 getProduct.EnsureSuccessStatusCode();
 
                 string getProductBody = await getProduct.Content.ReadAsStringAsync();
@@ -166,7 +166,7 @@ namespace TestBangazonAPI
         {
             using (var client = new APIClientProvider().Client)
             {
-                int deleteId = 39;
+                int deleteId = 4;
 
                 //Arrange
 
