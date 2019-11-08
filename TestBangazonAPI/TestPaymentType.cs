@@ -54,7 +54,7 @@ namespace TestBangazonAPI
                 /*
                     ACT
                 */
-                var response = await client.GetAsync("/api/paymenttype/11");
+                var response = await client.GetAsync("/api/paymenttype/2");
 
 
                 string responseBody = await response.Content.ReadAsStringAsync();
@@ -80,7 +80,7 @@ namespace TestBangazonAPI
 
                 PaymentType modifiedPaymentType = new PaymentType
                 {
-                    Id = 15,
+                    Id = 2,
                     Type = "PayPal",
                     AcctNumber = "12345600",
                     CustomerId = 3,
@@ -88,7 +88,7 @@ namespace TestBangazonAPI
                 var modifiedPaymentTypeAsJSON = JsonConvert.SerializeObject(modifiedPaymentType);
 
                 var response = await client.PutAsync(
-                    "api/paymenttype/15",
+                    "api/paymenttype/2",
                     new StringContent(modifiedPaymentTypeAsJSON, Encoding.UTF8, "application/json"));
                 string responseBody = await response.Content.ReadAsStringAsync();
 
@@ -99,7 +99,7 @@ namespace TestBangazonAPI
                 Verify that the PUT operation was successful
                 */
 
-                var getPaymentType = await client.GetAsync("/api/paymenttype/15");
+                var getPaymentType = await client.GetAsync("/api/paymenttype/2");
                 getPaymentType.EnsureSuccessStatusCode();
 
                 string getPaymentTypeBody = await getPaymentType.Content.ReadAsStringAsync();
@@ -159,7 +159,7 @@ namespace TestBangazonAPI
         {
             using (var client = new APIClientProvider().Client)
             {
-                int deleteId = 17;
+                int deleteId = 2;
 
                 //Arrange
 
