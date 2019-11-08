@@ -159,7 +159,7 @@ namespace TestBangazonAPI
         {
             using (var client = new APIClientProvider().Client)
             {
-                int deleteId = 2;
+                int deleteId = 16;
 
                 //Arrange
 

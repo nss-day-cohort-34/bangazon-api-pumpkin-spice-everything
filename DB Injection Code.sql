@@ -182,3 +182,10 @@ INSERT INTO PaymentType (CustomerId, AcctNumber, [Type]) VALUES (5, '565656565',
 UPDATE Customer
                             SET FirstName = 'John', LastName = 'Adams', CreationDate = '2019-05-05', LastActiveDate = '2019-05-05', IsActive = 1
                             WHERE Id = 1
+
+							INSERT INTO ComputerEmployee (EmployeeId, ComputerId, AssignDate, UnassignDate) VALUES (6, 2, 2019-11-07, null);
+
+INSERT INTO ComputerEmployee (EmployeeId, ComputerId, AssignDate, UnassignDate) VALUES (7, 4, 2012-11-07, 2019-12-05);
+INSERT INTO ComputerEmployee (EmployeeId, ComputerId, AssignDate, UnassignDate) VALUES (8, 5, 2019-11-05, 2019-11-07);
+INSERT INTO ComputerEmployee (EmployeeId, ComputerId, AssignDate, UnassignDate) VALUES (9, 3, 2019-11-07, null);
+INSERT INTO ComputerEmployee (EmployeeId, ComputerId, AssignDate, UnassignDate) VALUES (10, 3, 2019-11-07, null);

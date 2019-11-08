@@ -29,6 +29,10 @@ namespace BangazonAPI.Models
 
         [Required]
         public DateTime StartDate { get; set; }
+
+        //list of computers and list of training programs
+        public Computer Computer { get; set; }
+        public List<TrainingProgram> TrainingPrograms { get; set; } = new List<TrainingProgram>();
         
 
 

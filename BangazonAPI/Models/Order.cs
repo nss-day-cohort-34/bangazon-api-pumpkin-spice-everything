@@ -16,6 +16,8 @@ namespace BangazonAPI.Models
         [Required]
         public int CustomerId { get; set; }
 
+        public bool IsCompleted { get; set; }
+
 
         public Customer Customer { get; set; }
 
