@@ -80,7 +80,6 @@ namespace TestBangazonAPI
                 Computer modifiedComputer = new Computer
                 {
                     Id = 6,
-                    PurchaseDate = DateTime.Now,
                     Make = "MainFrame",
                     Manufacturer = "IBM"
                 };
@@ -123,9 +122,6 @@ namespace TestBangazonAPI
                     PurchaseDate = DateTime.Now,
                     Make = "MainFrame",
                     Manufacturer = "IBM"
-
-
-
                 };
                 //Serialize the object into a json string
                 var newComputerAsJson = JsonConvert.SerializeObject(newComputer);
