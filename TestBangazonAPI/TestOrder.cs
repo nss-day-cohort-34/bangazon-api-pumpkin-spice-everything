@@ -83,7 +83,7 @@ namespace TestBangazonAPI
                 {
                    
                     OrderDate = DateTime.Today,
-                    PaymentTypeId = 3,
+                    PaymentTypeId = 12,
                     CustomerId = 1,
                     isCompleted = false
                     
@@ -108,71 +108,74 @@ namespace TestBangazonAPI
                 string getOrderBody = await getOrder.Content.ReadAsStringAsync();
                 Order newOrder = JsonConvert.DeserializeObject<Order>(getOrderBody);
 
-                Assert.Equal(HttpStatusCode.OK, getOrder.StatusCode);
+                Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+                
 
             }
         }
 
-        ////POST test for posting a new ProductType
-        //[Fact]
+        ////POST test for posting a new Order
+        [Fact]
 
-        //public async Task TestPostNewProductType()
-        //{
-        //    using (var client = new APIClientProvider().Client)
-        //    {
-        //        // Arrange
-        //        // create a new producttype object to send to the database
-        //        ProductType newProductType = new ProductType
-        //        {
-
-        //            TypeName = "Baby",
-
-
-        //        };
-        //        //Serialize the object into a json string
-        //        var newProductTypeAsJson = JsonConvert.SerializeObject(newProductType);
-
-        //        //Act
-        //        //User the client to send the request and store the response
-        //        var response = await client.PostAsync("api/producttypes",
-        //            new StringContent(newProductTypeAsJson, Encoding.UTF8, "application/json"));
-
-        //        //Store the json body of the response
-        //        string responseBody = await response.Content.ReadAsStringAsync();
-
-        //        //Deserialize the JSON into an instance of a ProductType
-        //        var newProductTypeObject = JsonConvert.DeserializeObject<ProductType>(responseBody);
+        public async Task TestPostNewOrder()
+        {
+            using (var client = new APIClientProvider().Client)
+            {
+                // Arrange
+                // create a new producttype object to send to the database
+                Order newOrder = new Order()
+                {
+                    CustomerId = 3,
+                    PaymentTypeId = 3,
+                    OrderDate = DateTime.Now,
+                    isCompleted = false
 
 
-        //        //ASSERT
+                };
+                //Serialize the object into a json string
+                var newOrderAsJson = JsonConvert.SerializeObject(newOrder);
+
+                //Act
+                //User the client to send the request and store the response
+                var response = await client.PostAsync("api/order",
+                    new StringContent(newOrderAsJson, Encoding.UTF8, "application/json"));
+
+                //Store the json body of the response
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                //Deserialize the JSON into an instance of a Order
+                var newOrderObject = JsonConvert.DeserializeObject<Order>(responseBody);
 
 
-        //        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        //        Assert.Equal("Baby", newProductTypeObject.TypeName);
+                //ASSERT
 
 
-        //    }
-        //}
+                Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+                Assert.Equal(3, newOrderObject.PaymentTypeId);
+
+
+            }
+        }
 
         ////test for deleting a producttype
-        //[Fact]
-        //public async Task TestDeleteProductType()
-        //{
-        //    using (var client = new APIClientProvider().Client)
-        //    {
-        //        int deleteId = 12;
+        [Fact]
+        public async Task TestDeleteOrder()
+        {
+            using (var client = new APIClientProvider().Client)
+            {
+                int deleteId = 19;
 
-        //        //Arrange
+                //Arrange
 
-        //        //Act
-        //        var response = await client.DeleteAsync($"/api/producttypes/{deleteId}");
-        //        string responseBody = await response.Content.ReadAsStringAsync();
-        //        var student = JsonConvert.DeserializeObject<ProductType>(responseBody);
+                //Act
+                var response = await client.DeleteAsync($"/api/order/{deleteId}");
+                string responseBody = await response.Content.ReadAsStringAsync();
+                var order = JsonConvert.DeserializeObject<Order>(responseBody);
 
-        //        //Assert
-        //        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                //Assert
+                Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
-        //    }
-        //}
+            }
+        }
     }
 }
