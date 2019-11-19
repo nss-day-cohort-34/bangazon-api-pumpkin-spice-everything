@@ -244,9 +244,40 @@ namespace BangazonAPI.Controllers
                             reader.Close();
                             return Ok(customers.Values);
                         }
+                        else
+                            {
+                            cmd.CommandText = @"SELECT Id, FirstName, LastName, CreationDate, LastActiveDate, IsActive
+                                          FROM Customer";
+                            SqlDataReader reader = await cmd.ExecuteReaderAsync();
 
+                            Dictionary<int, Customer> customers = new Dictionary<int, Customer>();
+                            while (reader.Read())
+                            {
+                                int customerId = reader.GetInt32(reader.GetOrdinal("Id"));
+                                Customer newCustomer = new Customer
+                                {
+                                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                    FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                    LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                    CreationDate = reader.GetDateTime(reader.GetOrdinal("CreationDate")),
+                                    LastActiveDate = reader.GetDateTime(reader.GetOrdinal("LastActiveDate")),
+                                    IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                                    ProductsToSell = new List<Product>(),
+                                    PaymentTypes = new List<PaymentType>(),
+                                    Orders = new List<Order>()
+
+
+                                };
+
+                                customers.Add(customerId, newCustomer);
+                            }
+
+                            reader.Close();
+
+                            return Ok(customers.Values);
+                        }
                     }
-                    return null;
+                   
 
                 }
             }
@@ -360,7 +391,39 @@ namespace BangazonAPI.Controllers
                         return Ok(customers.Values);
 
                     }
-                    return null;
+                    else
+                    {
+                        cmd.CommandText = @"SELECT Id, FirstName, LastName, CreationDate, LastActiveDate, IsActive
+                                          FROM Customer";
+                        SqlDataReader reader = await cmd.ExecuteReaderAsync();
+
+                        Dictionary<int, Customer> customers = new Dictionary<int, Customer>();
+                        while (reader.Read())
+                        {
+                            int customerId = reader.GetInt32(reader.GetOrdinal("Id"));
+                            Customer newCustomer = new Customer
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                CreationDate = reader.GetDateTime(reader.GetOrdinal("CreationDate")),
+                                LastActiveDate = reader.GetDateTime(reader.GetOrdinal("LastActiveDate")),
+                                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                                ProductsToSell = new List<Product>(),
+                                PaymentTypes = new List<PaymentType>(),
+                                Orders = new List<Order>()
+
+
+                            };
+
+                            customers.Add(customerId, newCustomer);
+                        }
+
+                        reader.Close();
+
+                        return Ok(customers.Values);
+                    }
+                   
                 }
             }
         }
@@ -477,8 +540,40 @@ namespace BangazonAPI.Controllers
                         return Ok(customers.Values);
                     }
 
+                    else
+                    {
+                        cmd.CommandText = @"SELECT Id, FirstName, LastName, CreationDate, LastActiveDate, IsActive
+                                          FROM Customer";
+                        SqlDataReader reader = await cmd.ExecuteReaderAsync();
+
+                        Dictionary<int, Customer> customers = new Dictionary<int, Customer>();
+                        while (reader.Read())
+                        {
+                            int customerId = reader.GetInt32(reader.GetOrdinal("Id"));
+                            Customer newCustomer = new Customer
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                CreationDate = reader.GetDateTime(reader.GetOrdinal("CreationDate")),
+                                LastActiveDate = reader.GetDateTime(reader.GetOrdinal("LastActiveDate")),
+                                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                                ProductsToSell = new List<Product>(),
+                                PaymentTypes = new List<PaymentType>(),
+                                Orders = new List<Order>()
+
+
+                            };
+
+                            customers.Add(customerId, newCustomer);
+                        }
+
+                        reader.Close();
+
+                        return Ok(customers.Values);
+                    }
                 }
-                return null;
+                
             }
         }
 
